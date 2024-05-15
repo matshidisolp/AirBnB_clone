@@ -2,6 +2,7 @@
 
 """A base model Python script."""
 
+from models import storage
 import uuid
 from datetime import datetime
 
@@ -43,9 +44,12 @@ class BaseModel:
 
     def save(self):
         """
-        Updates the updated_at attribute with the current datetime.
+        Now should be able to save instances of BaseModel to a
+        JSON file and reload them successfully
         """
         self.updated_at = datetime.now()
+        storage.new(self)
+        storage.save()
 
     def to_dict(self):
         """Creates a dictionary of the class and returns
