@@ -3,8 +3,12 @@
 import cmd
 import sys
 import models
+from models.base_model import BaseModel
+from models import storage
 
 class HBNBCommand(cmd.Cmd):
+    """HBNB command interpreter class."""
+
     prompt = '(hbnb) '
 
     def do_create(self, arg):
@@ -16,10 +20,11 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         try:
-            obj = eval(arg)()
+            class_ = getattr(models, arg)  # Get class from models module
+            obj = class_()
             obj.save()
             print(obj.id)
-        except NameError:
+        except AttributeError:
             print("** class doesn't exist **")
 
     def do_show(self, arg):
@@ -34,11 +39,13 @@ class HBNBCommand(cmd.Cmd):
         try:
             cls_name = args[0]
             obj_id = args[1]
-            objs = models.storage.all()
-            key = "{}.{}".format(cls_name, obj_id)
-            print(objs.get(key, "** no instance found **"))
-        except IndexError:
-            print("** instance id missing **")
+            objs = storage.get(cls_name, obj_id)
+            if not obj:
+                print("** no instance found **")
+            else:
+                print(obj)
+        except  Exception as e:
+            print(f"** {e} **")
 
     def do_destroy(self, arg):
         """
@@ -74,8 +81,8 @@ class HBNBCommand(cmd.Cmd):
             try:
                 cls_name = arg.split()[0]
                 print([str(obj) for key, obj in objs.items() if cls_name in key])
-            except IndexError:
-                print("** class name missing **")
+            except Exception as e:
+                              print(f"** {e} **")
 
     def do_update(self, arg):
         """
