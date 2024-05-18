@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import cmd
-import sys
-import models
-from models.base_model import BaseModel
 from models import storage
+from models.base_model import BaseModel
 from models.user import User
 
 class HBNBCommand(cmd.Cmd):
@@ -12,108 +10,114 @@ class HBNBCommand(cmd.Cmd):
 
     prompt = '(hbnb) '
 
+    classes = {
+        'BaseModel': BaseModel,
+        'User': User
+    }
+
     def do_create(self, arg):
         """
         Creates a new instance of BaseModel, saves it
         (to the JSON file) and prints the id.
         """
-        if not arg:
+        if not args:
             print("** class name missing **")
             return
         try:
-            class_ = getattr(models, arg)  # Get class from models module
-            obj = class_()
-            obj.save()
-            print(obj.id)
-        except AttributeError:
+            new_instance = eval(args)()
+            new_instance.save()
+            print(new_instance.id)
+        except NameError:
             print("** class doesn't exist **")
+
 
     def do_show(self, arg):
         """
         Prints the string representation of an instance based on
         the class name and id.
         """
-        args = arg.split()
-        if not args:
-            print("** class name missing **")
-            return
-        try:
-            cls_name = args[0]
-            obj_id = args[1]
-            objs = storage.get(cls_name, obj_id)
-            if not obj:
-                print("** no instance found **")
+        arg_list = args.split()
+        if len(arg_list) < 2:
+            if not args:
+                print("** class name missing **")
             else:
-                print(obj)
-        except  Exception as e:
-            print(f"** {e} **")
+                print("** instance id missing **")
+            return
+        class_name, instance_id = arg_list
+        if class_name not in ["BaseModel", "User"]:
+            print("** class doesn't exist **")
+            return
+        key = class_name + '.' + instance_id
+        obj = storage.all().get(key)
+        if not obj:
+            print("** no instance found **")
+        else:
+            print(obj)
 
     def do_destroy(self, arg):
         """
         Deletes an instance based on the class name and id
         (save the change into the JSON file).
         """
-        args = arg.split()
-        if not args:
-            print("** class name missing **")
-            return
-        try:
-            cls_name = args[0]
-            obj_id = args[1]
-            objs = models.storage.all()
-            key = "{}.{}".format(cls_name, obj_id)
-            if key in objs:
-                objs.pop(key)
-                models.storage.save()
+        arg_list = args.split()
+        if len(arg_list) < 2:
+            if not args:
+                print("** class name missing **")
             else:
-                print("** no instance found **")
-        except IndexError:
-            print("** instance id missing **")
+                print("** instance id missing **")
+            return
+        class_name, instance_id = arg_list
+        if class_name not in ["BaseModel", "User"]:
+            print("** class doesn't exist **")
+            return
+        key = class_name + '.' + instance_id
+        if key not in storage.all():
+            print("** no instance found **")
+        else:
+            storage.all().pop(key)
+            storage.save()
 
     def do_all(self, arg):
         """
         Prints all string representation of all instances based or
         not on the class name.
         """
-        objs = models.storage.all()
-        if not arg:
-            print([str(obj) for obj in objs.values()])
+        if args:
+            if args not in ["BaseModel", "User"]:
+                print("** class doesn't exist **")
+                return
+            objects = [str(obj) for key, obj in storage.all().items() if key.startswith(args)]
         else:
-            try:
-                cls_name = arg.split()[0]
-                print([str(obj) for key, obj in objs.items() if cls_name in key])
-            except Exception as e:
-                              print(f"** {e} **")
+            objects = [str(obj) for obj in storage.all().values()]
+        print(objects)
 
     def do_update(self, arg):
         """
         Updates an instance based on the class name and id by
         adding or updating attribute.
         """
-        args = arg.split()
-        if not args:
-            print("** class name missing **")
-            return
-        try:
-            cls_name = args[0]
-            obj_id = args[1]
-            attr_name = args[2]
-            attr_value = args[3]
-            objs = models.storage.all()
-            key = "{}.{}".format(cls_name, obj_id)
-            if key in objs:
-                obj = objs[key]
-                setattr(obj, attr_name, attr_value)
-                models.storage.save()
-            else:
-                print("** no instance found **")
-        except IndexError:
-            if len(args) == 1:
+        arg_list = args.split()
+        if len(arg_list) < 4:
+            if not args:
+                print("** class name missing **")
+            elif len(arg_list) == 1:
                 print("** instance id missing **")
-            elif len(args) == 2:
+            elif len(arg_list) == 2:
                 print("** attribute name missing **")
-            elif len(args) == 3:
+            else:
                 print("** value missing **")
+            return
+        class_name, instance_id, attr_name, attr_value = arg_list
+        if class_name not in ["BaseModel", "User"]:
+            print("** class doesn't exist **")
+            return
+        key = class_name + '.' + instance_id
+        obj = storage.all().get(key)
+        if not obj:
+            print("** no instance found **")
+        else:
+            setattr(obj, attr_name, attr_value)
+            obj.save()
 
     def do_quit(self, arg):
         """Quit command to exit the program."""
@@ -129,3 +133,4 @@ class HBNBCommand(cmd.Cmd):
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
+
