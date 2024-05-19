@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import cmd
+import re
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
@@ -137,24 +138,31 @@ class HBNBCommand(cmd.Cmd):
         """Do nothing on empty input line."""
         pass
 
-
     def default(self, arg):
-        """Override the default method to handle <class name>.all() and <class name>.count()"""
-        args = arg.split('.')
-        if len(args) == 2:
-            class_name = args[0]
-            command = args[1]
-            if class_name in self.classes:
-                if command == "all()":
-                    instances = [str(obj) for obj in storage.all().values() if type(obj).__name__ == class_name]
-                    print(instances)
-                elif command == "count()":
-                    count = len([obj for obj in storage.all().values() if type(obj).__name__ == class_name])
-                    print(count)
-                else:
-                    print("*** Unknown syntax: {}".format(arg))
+        """Override the default method to handle <class name>.all(), <class name>.count(), and <class name>.show(<id>)"""
+        match = re.match(r"(\w+)\.(\w+)\((.*?)\)", arg)
+        if not match:
+            print("*** Unknown syntax: {}".format(arg))
+            return
+        
+        class_name, method, method_args = match.groups()
+        if class_name not in self.classes:
+            print("** class doesn't exist **")
+            return
+        
+        if method == "all":
+            instances = [str(obj) for obj in storage.all().values() if type(obj).__name__ == class_name]
+            print(instances)
+        elif method == "count":
+            count = len([obj for obj in storage.all().values() if type(obj).__name__ == class_name])
+            print(count)
+        elif method == "show":
+            instance_id = method_args.strip('"')
+            key = "{}.{}".format(class_name, instance_id)
+            if key in storage.all():
+                print(storage.all()[key])
             else:
-                print("** class doesn't exist **")
+                print("** no instance found **")
         else:
             print("*** Unknown syntax: {}".format(arg))
 
