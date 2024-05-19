@@ -1,5 +1,12 @@
+# models/engine/file_storage.py
 import json
 from models.base_model import BaseModel
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
 
 class FileStorage:
     """Serializes instances to a JSON file and deserializes JSON file to instances."""
@@ -34,10 +41,7 @@ class FileStorage:
                 obj_dict = json.load(f)
                 for key, value in obj_dict.items():
                     cls_name = value['__class__']
-                    if cls_name == 'BaseModel':
-                        self.__objects[key] = BaseModel(**value)
-                    elif cls_name == 'User':
-                        self.__objects[key] = User(**value)
-                    # Add other classes here as needed
+                    obj = eval(cls_name + "(**value)")
+                    self.__objects[key] = obj
         except FileNotFoundError:
             pass
