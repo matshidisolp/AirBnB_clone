@@ -137,6 +137,21 @@ class HBNBCommand(cmd.Cmd):
         """Do nothing on empty input line."""
         pass
 
+
+
+    def default(self, arg):
+        """Override the default method to handle <class name>.all()"""
+        args = arg.split('.')
+        if len(args) == 2 and args[1] == "all()":
+            class_name = args[0]
+            if class_name in self.classes:
+                instances = [str(obj) for obj in storage.all().values() if type(obj).__name__ == class_name]
+                print(instances)
+            else:
+                print("** class doesn't exist **")
+        else:
+            print("*** Unknown syntax: {}".format(arg))
+
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
 
