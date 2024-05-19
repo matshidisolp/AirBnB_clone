@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import cmd
 import re
@@ -141,7 +141,7 @@ class HBNBCommand(cmd.Cmd):
 
     def default(self, arg):
         """Override the default method to handle <class name>.all(), <class name>.count(), and <class name>.show(<id>)"""
-        match = re.match(r"(\w+)\.(\w+)\((.*?)\)", arg)
+        match = re.match(r"(\w+)\.(\w+)\((.*)\)", arg)
         if not match:
             print("*** Unknown syntax: {}".format(arg))
             return
@@ -150,7 +150,10 @@ class HBNBCommand(cmd.Cmd):
         if class_name not in self.classes:
             print("** class doesn't exist **")
             return
-        
+
+        method_args = re.split(r',\s*(?=(?:[^"]*"[^"]*")*[^"]*$)', method_args)
+        method_args = [arg.strip().strip('"') for arg in method_args]
+
         if method == "all":
             instances = [str(obj) for obj in storage.all().values() if type(obj).__name__ == class_name]
             print(instances)
@@ -158,10 +161,42 @@ class HBNBCommand(cmd.Cmd):
             count = len([obj for obj in storage.all().values() if type(obj).__name__ == class_name])
             print(count)
         elif method == "show":
-            instance_id = method_args.strip('"')
+            if len(method_args) < 1:
+                print("** instance id missing **")
+                return
+            instance_id = method_args[0]
             key = "{}.{}".format(class_name, instance_id)
             if key in storage.all():
                 print(storage.all()[key])
+            else:
+                print("** no instance found **")
+        elif method == "destroy":
+            if len(method_args) < 1:
+                print("** instance id missing **")
+                return
+            instance_id = method_args[0]
+            key = "{}.{}".format(class_name, instance_id)
+            if key in storage.all():
+                del storage.all()[key]
+                storage.save()
+            else:
+                print("** no instance found **")
+        elif method == "update":
+            if len(method_args) < 1:
+                print("** instance id missing **")
+                return
+            if len(method_args) < 2:
+                print("** attribute name missing **")
+                return
+            if len(method_args) < 3:
+                print("** value missing **")
+                return
+            instance_id, attribute_name, attribute_value = method_args
+            key = "{}.{}".format(class_name, instance_id)
+            if key in storage.all():
+                obj = storage.all()[key]
+                setattr(obj, attribute_name, attribute_value)
+                obj.save()
             else:
                 print("** no instance found **")
         else:
@@ -169,4 +204,3 @@ class HBNBCommand(cmd.Cmd):
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
-
