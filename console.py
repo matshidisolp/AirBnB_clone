@@ -1,7 +1,8 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import cmd
 import re
+import json
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
@@ -41,7 +42,6 @@ class HBNBCommand(cmd.Cmd):
         new_instance = self.classes[arg]()
         new_instance.save()
         print(new_instance.id)
-
 
     def do_show(self, arg):
         """
@@ -140,7 +140,7 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def default(self, arg):
-        """Override the default method to handle <class name>.all(), <class name>.count(), and <class name>.show(<id>)"""
+        """Override the default method to handle <class name>.all(), <class name>.count(), <class name>.show(<id>), <class name>.destroy(<id>), <class name>.update(<id>, <attribute name>, <attribute value>), and <class name>.update(<id>, <dictionary representation>)"""
         match = re.match(r"(\w+)\.(\w+)\((.*)\)", arg)
         if not match:
             print("*** Unknown syntax: {}".format(arg))
@@ -185,20 +185,36 @@ class HBNBCommand(cmd.Cmd):
             if len(method_args) < 1:
                 print("** instance id missing **")
                 return
-            if len(method_args) < 2:
+            instance_id = method_args[0]
+            key = "{}.{}".format(class_name, instance_id)
+            if key not in storage.all():
+                print("** no instance found **")
+                return
+            obj = storage.all()[key]
+            if len(method_args) == 2 and method_args[1].startswith("{") and method_args[1].endswith("}"):
+                # Parse the dictionary representation
+                try:
+                    attributes = json.loads(method_args[1])
+                    if not isinstance(attributes, dict):
+                        print("** value missing **")
+                        return
+                    for attr_name, attr_value in attributes.items():
+                        setattr(obj, attr_name, attr_value)
+                    obj.save()
+                except json.JSONDecodeError:
+                    print("** invalid dictionary format **")
+                    return
+            elif len(method_args) < 3:
                 print("** attribute name missing **")
                 return
-            if len(method_args) < 3:
+            elif len(method_args) < 4:
                 print("** value missing **")
                 return
-            instance_id, attribute_name, attribute_value = method_args
-            key = "{}.{}".format(class_name, instance_id)
-            if key in storage.all():
-                obj = storage.all()[key]
+            else:
+                attribute_name = method_args[1]
+                attribute_value = method_args[2]
                 setattr(obj, attribute_name, attribute_value)
                 obj.save()
-            else:
-                print("** no instance found **")
         else:
             print("*** Unknown syntax: {}".format(arg))
 
