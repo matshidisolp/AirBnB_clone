@@ -48,15 +48,14 @@ class BaseModel:
         JSON file and reload them successfully
         """
         self.updated_at = datetime.now()
-        storage.new(self)
-        storage.save()
+        models.storage.save()
 
     def to_dict(self):
         """Creates a dictionary of the class and returns
         a dictionary with all keys/values of __dict__ of the instance.
         """
         dict_copy = self.__dict__.copy()
-        dict_copy['__class__'] = self.__class__.__name__
         dict_copy['created_at'] = self.created_at.isoformat()
         dict_copy['updated_at'] = self.updated_at.isoformat()
+        dict_copy['__class__'] = self.__class__.__name__
         return dict_copy
