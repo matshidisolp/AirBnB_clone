@@ -8,6 +8,11 @@ from models.city import City
 from models.amenity import Amenity
 from models.review import Review
 
+
+classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
+           "Place": Place, "Review": Review, "State": State, "User": User}
+
+
 class FileStorage:
     """Serializes instances to a JSON file and deserializes JSON file to instances."""
 
@@ -41,7 +46,7 @@ class FileStorage:
                 obj_dict = json.load(f)
                 for key, value in obj_dict.items():
                     cls_name = value['__class__']
-                    obj = eval(cls_name + "(**value)")
+                    obj = classes[cls_name](**value)
                     self.__objects[key] = obj
         except FileNotFoundError:
             pass
