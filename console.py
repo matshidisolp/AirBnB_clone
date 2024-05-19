@@ -164,9 +164,16 @@ class HBNBCommand(cmd.Cmd):
                 print(storage.all()[key])
             else:
                 print("** no instance found **")
+        elif method == "destroy":
+            instance_id = method_args.strip('"')
+            key = "{}.{}".format(class_name, instance_id)
+            if key in storage.all():
+                del storage.all()[key]
+                storage.save()
+            else:
+                print("** no instance found **")
         else:
             print("*** Unknown syntax: {}".format(arg))
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
-
