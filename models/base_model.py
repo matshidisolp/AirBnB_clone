@@ -2,7 +2,7 @@
 
 """A base model Python script."""
 
-from models import storage
+import models
 import uuid
 from datetime import datetime
 
