@@ -79,8 +79,10 @@ EOF  all  count  create  destroy  help  quit  show  update
 ```bash
 (hbnb) quit
 $
+```
 
-## AUTHORS
+
+# AUTHORS
 
 <details>
     <summary>Innocent Karabo Mohlala</summary>
@@ -95,9 +97,6 @@ $
     <ul>
     <li><a href="https://www.github.com/matshidisolp">Github</a></li>
     <li><a href="https://www.twitter.com/">Twitter</a></li>
-    <li><a href="mailto:null@gmail.com">e-mail</a></li>
+    <li><a href="mailto:mpitswane@gmail.com">e-mail</a></li>
     </ul>
 </details>
-
-
-
